@@ -1,7 +1,7 @@
 var express = require("express");
 const { buildPrompt } = require("../utils/build.prompt");
 const { text } = require("body-parser");
-const { isLoggedIn } = require("../middlewares/user.middlware");
+const { isLoggedIn } = require("../middlewares/user.middleware");
 var geminiRouter = express.Router();
 
 geminiRouter.post("/generate", isLoggedIn, async (req, res) => {
@@ -28,7 +28,7 @@ geminiRouter.post("/generate", isLoggedIn, async (req, res) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-goog-api-key": `${gemini_key}`,
+          "x-goog-api-key": gemini_key,
         },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
       }
@@ -49,7 +49,7 @@ geminiRouter.post("/generate", isLoggedIn, async (req, res) => {
     console.error("Server Error:", error);
     res
       .status(500)
-      .json({ message: "Something went Wrong", Status: `error ${error}` });
+      .json({ message: "Something went Wrong", Status: `error ${error.message}` });
   }
 });
 
