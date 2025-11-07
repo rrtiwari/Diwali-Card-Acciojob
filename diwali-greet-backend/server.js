@@ -13,7 +13,7 @@ dotenv.config();
 // middlwares
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "https://diwali-card-acciojob.vercel.app/",
     credentials: true, // Allow cookies
   })
 );
