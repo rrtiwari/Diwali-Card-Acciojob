@@ -5,20 +5,18 @@ var dotenv = require("dotenv");
 dotenv.config();
 
 const { dbConfig } = require("./configuration/db.config");
+
 const { userRouter } = require("./routers/user.router");
 const { geminiRouter } = require("./routers/gemini.router");
+
 var cookieParser = require("cookie-parser");
 
-// Define your CORS options
 const corsOptions = {
   origin: "https://diwali-card-acciojob.vercel.app",
   credentials: true,
 };
 
-// This one line handles all CORS and preflight requests
 app.use(cors(corsOptions));
-
-// We remove the app.options line that was causing the crash
 
 app.use(cookieParser());
 app.use(express.json());
