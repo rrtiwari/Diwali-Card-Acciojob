@@ -25,8 +25,8 @@ geminiRouter.post("/generate", isLoggedIn, async (req, res) => {
     prompt +=
       "\n2. DO NOT include a 'Subject:' line. Start the message directly with the greeting (e.g., 'Dear Mohan,').";
 
-    // --- FINAL FIX: Using stable gemini-2.5-flash on v1beta endpoint ---
     const response = await fetch(
+      // Using the highly stable gemini-2.5-flash on v1beta endpoint
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
       {
         method: "POST",
@@ -37,22 +37,36 @@ geminiRouter.post("/generate", isLoggedIn, async (req, res) => {
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
       }
     );
-    // --- END FINAL FIX ---
 
     if (response.ok) {
       const data = await response.json();
       const greeting =
         data?.candidates?.[0]?.content?.parts?.[0]?.text || "No responses";
 
+      if (greeting === "No responses") {
+        console.error(
+          "DEBUG: API returned 200 OK but no text. Full Data:",
+          data
+        );
+        return res
+          .status(500)
+          .json({
+            message: "API Response was successful but returned no text.",
+          });
+      }
+
       res.json({ message: greeting });
     } else {
-      // Log the full error response status if it's not OK
+      // Handle non-200 errors (404, 429, 403)
       const errorData = await response.json();
-      console.error("Google API Error Status:", response.status, errorData);
-      res.status(response.status).json({ message: "Error from Google API" });
+      console.error("Google API Error:", response.status, errorData);
+      res
+        .status(response.status)
+        .json({ message: `Google API failed with status ${response.status}.` });
     }
   } catch (error) {
-    console.error("Server Error:", error);
+    // This catches network issues or JSON parsing errors
+    console.error("Server Error (Catch Block):", error);
     res
       .status(500)
       .json({
