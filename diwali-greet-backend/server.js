@@ -5,10 +5,8 @@ var dotenv = require("dotenv");
 dotenv.config();
 
 const { dbConfig } = require("./configuration/db.config");
-
 const { userRouter } = require("./routers/user.router");
 const { geminiRouter } = require("./routers/gemini.router");
-
 var cookieParser = require("cookie-parser");
 
 const corsOptions = {
