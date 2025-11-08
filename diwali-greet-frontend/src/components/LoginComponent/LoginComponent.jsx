@@ -33,7 +33,9 @@ function LoginComponent() {
         }
       )
       .then((response) => {
-        navigate("/");
+        setTimeout(() => {
+          navigate("/", { replace: true });
+        }, 100);
       })
       .catch((error) => {
         console.error("❌ Login Error:", error.response?.data || error.message);
