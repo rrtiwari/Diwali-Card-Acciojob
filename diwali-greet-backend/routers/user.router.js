@@ -29,7 +29,6 @@ userRouter.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      // Handles missing fields gracefully
       return res
         .status(400)
         .json({ Message: "Email and password is required" });
@@ -37,7 +36,6 @@ userRouter.post("/login", async (req, res) => {
     const user = await UserModel.findOne({ email });
 
     if (!user || !(await user.comparePassword(password))) {
-      // Prevents server crash by adding 'return'
       return res
         .status(401)
         .json({ Message: "Email or password do not match" });
@@ -45,15 +43,10 @@ userRouter.post("/login", async (req, res) => {
 
     const token = await user.generateJWTToken();
 
-   res.cookie("token", token, {
-      httpOnly: false, 
-      secure: process.env.NODE_ENV === "production", 
-      sameSite: "Lax",
-    });
-
     res.status(200).json({
       Message: "User logged in successfully",
       success: true,
+      token: token, 
     });
   } catch (error) {
     console.error("Login Error:", error);

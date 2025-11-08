@@ -3,11 +3,8 @@ import TextField from "@mui/material/TextField";
 import axios from "axios";
 axios.defaults.withCredentials = true;
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 function LoginComponent() {
-  const navigate = useNavigate();
-
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const apiVersion = import.meta.env.VITE_APP_API_VERSION;
 
@@ -36,13 +33,13 @@ function LoginComponent() {
         }
       )
       .then((response) => {
-        console.log("✅ Login API Success, Forcing Navigation...");
+        console.log("✅ Login API Success, Saving Token.");
 
-        // Final Fix: Use navigate with replace: true inside a delay
-        // This ensures the browser saves the cookie before the redirect is completed.
-        setTimeout(() => {
-          navigate("/", { replace: true });
-        }, 150);
+        // --- FIX 1: Save token directly to Local Storage ---
+        localStorage.setItem("token", response.data.token);
+
+        // FIX 2: Force full page reload to ensure PrivateRoute runs cleanly
+        window.location.href = "/";
       })
       .catch((error) => {
         console.error("❌ Login Error:", error.response?.data || error.message);
