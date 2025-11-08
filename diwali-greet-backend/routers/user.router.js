@@ -45,10 +45,9 @@ userRouter.post("/login", async (req, res) => {
 
     const token = await user.generateJWTToken();
 
-    // CRITICAL: Sets the secure cookie for the browser
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // True only on Render/Vercel
+   res.cookie("token", token, {
+      httpOnly: false, 
+      secure: process.env.NODE_ENV === "production", 
       sameSite: "Lax",
     });
 
