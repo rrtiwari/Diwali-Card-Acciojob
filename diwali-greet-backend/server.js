@@ -10,10 +10,7 @@ const { geminiRouter } = require("./routers/gemini.router");
 var cookieParser = require("cookie-parser");
 
 const corsOptions = {
-  origin: [
-    "https://diwali-card-acciojob.vercel.app",
-    "https://diwali-card-acciojob-eyn3dsr4v-rahul-tiwaris-projects-7c661166.vercel.app",
-  ],
+  origin: "https://diwali-card-acciojob-rnrend7b6-rahul-tiwaris-projects-7c661166.vercel.app", 
   credentials: true,
 };
 
