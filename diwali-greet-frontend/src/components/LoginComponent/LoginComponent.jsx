@@ -3,9 +3,12 @@ import TextField from "@mui/material/TextField";
 import axios from "axios";
 axios.defaults.withCredentials = true;
 import { useState } from "react";
+// Since we are forcing a full reload, we don't need useNavigate
+// import { useNavigate } from "react-router-dom";
 
 function LoginComponent() {
-  
+  // const navigate = useNavigate(); // Removed, using window.location.href
+
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const apiVersion = import.meta.env.VITE_APP_API_VERSION;
 
@@ -19,7 +22,11 @@ function LoginComponent() {
   };
 
   const handleOnSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent default form submission
+
+    // Log to confirm the function is running
+    console.log("Form Submit Handler Triggered.");
+
     axios
       .post(
         `${apiUrl}/${apiVersion}/user/login`,
@@ -32,6 +39,10 @@ function LoginComponent() {
         }
       )
       .then((response) => {
+        // Log the success before navigation
+        console.log("✅ Login API Success, Redirecting...");
+
+        // Final Fix: Force full page reload/redirect
         window.location.href = "/";
       })
       .catch((error) => {
@@ -46,6 +57,8 @@ function LoginComponent() {
         <p style={{ margin: "-10px 0 25px 0", color: "#555" }}>
           Login to generate your card
         </p>
+
+        {/* CRITICAL: Form is explicitly linked to the submit handler */}
         <form onSubmit={handleOnSubmit}>
           <TextField
             label="Email"
@@ -64,7 +77,7 @@ function LoginComponent() {
           />
           <Button
             variant="contained"
-            type="submit"
+            type="submit" // This tells the button to submit the form
             fullWidth
             style={{
               padding: "12px",
@@ -73,7 +86,7 @@ function LoginComponent() {
               marginTop: "10px",
             }}
           >
-            Login
+            LOGIN
           </Button>
         </form>
       </div>
