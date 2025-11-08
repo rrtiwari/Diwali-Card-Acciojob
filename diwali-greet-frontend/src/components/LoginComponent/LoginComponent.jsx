@@ -3,10 +3,9 @@ import TextField from "@mui/material/TextField";
 import axios from "axios";
 axios.defaults.withCredentials = true;
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 function LoginComponent() {
-  const navigate = useNavigate();
+  
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const apiVersion = import.meta.env.VITE_APP_API_VERSION;
 
@@ -33,9 +32,7 @@ function LoginComponent() {
         }
       )
       .then((response) => {
-        setTimeout(() => {
-          navigate("/", { replace: true });
-        }, 100);
+        window.location.href = "/";
       })
       .catch((error) => {
         console.error("❌ Login Error:", error.response?.data || error.message);
