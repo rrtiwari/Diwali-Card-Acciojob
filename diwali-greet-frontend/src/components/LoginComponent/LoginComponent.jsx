@@ -3,11 +3,10 @@ import TextField from "@mui/material/TextField";
 import axios from "axios";
 axios.defaults.withCredentials = true;
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; 
-// Note: We don't need 'Cookies' here, but the 'useNavigate' hook is crucial.
+import { useNavigate } from "react-router-dom";
 
 function LoginComponent() {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const apiVersion = import.meta.env.VITE_APP_API_VERSION;
@@ -22,8 +21,8 @@ function LoginComponent() {
   };
 
   const handleOnSubmit = (e) => {
-    e.preventDefault(); 
-    console.log("Form Submit Handler Triggered."); 
+    e.preventDefault();
+    console.log("Form Submit Handler Triggered.");
 
     axios
       .post(
@@ -38,13 +37,12 @@ function LoginComponent() {
       )
       .then((response) => {
         console.log("✅ Login API Success, Forcing Navigation...");
-        
+
         // Final Fix: Use navigate with replace: true inside a delay
         // This ensures the browser saves the cookie before the redirect is completed.
         setTimeout(() => {
-            navigate("/", { replace: true });
-        }, 150); 
-        
+          navigate("/", { replace: true });
+        }, 150);
       })
       .catch((error) => {
         console.error("❌ Login Error:", error.response?.data || error.message);
@@ -58,8 +56,8 @@ function LoginComponent() {
         <p style={{ margin: "-10px 0 25px 0", color: "#555" }}>
           Login to generate your card
         </p>
-        
-        <form onSubmit={handleOnSubmit}> 
+
+        <form onSubmit={handleOnSubmit}>
           <TextField
             label="Email"
             variant="outlined"
@@ -77,7 +75,7 @@ function LoginComponent() {
           />
           <Button
             variant="contained"
-            type="submit" 
+            type="submit"
             fullWidth
             style={{
               padding: "12px",
