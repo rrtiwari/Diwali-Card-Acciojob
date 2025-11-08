@@ -20,12 +20,12 @@ const tones = [
   { value: "Informal", label: "Informal" },
 ];
 
-const diyaDataURL =
-  "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23E65100' d='M10 80 Q 50 100 90 80 Q 50 60 10 80 Z'/%3E%3Cpath fill='%23FF9800' d='M50 50 Q 60 30 50 10 Q 40 30 50 50 Z'/%3E%3Cpath fill='%23FFEB3B' d='M50 45 Q 55 30 50 20 Q 45 30 50 45 Z'/%3E%3C/svg%3E";
+const diyaDataURL = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23FFC107' d='M10 80 Q 50 100 90 80 Q 50 60 10 80 Z'/%3E%3Cpath fill='%23FF9800' d='M50 50 Q 60 30 50 10 Q 40 30 50 50 Z'/%3E%3Cpath fill='%23FFEB3B' d='M50 45 Q 55 30 50 20 Q 45 30 50 45 Z'/%3E%3C/svg%3E";
 
 function HomeComponent() {
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const apiVersion = import.meta.env.VITE_APP_API_VERSION;
+  const cardRef = useRef(null);
 
   const [form, setForm] = useState({
     receiptName: "",
@@ -35,7 +35,6 @@ function HomeComponent() {
 
   const [responseText, setResponseText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isCreatingImage, setIsCreatingImage] = useState(false);
 
   const handleChange = (prop) => (event) => {
     setForm({ ...form, [prop]: event.target.value });
@@ -46,15 +45,24 @@ function HomeComponent() {
     setIsLoading(true);
     setResponseText("");
 
+    const payload = {
+      receiptName: form.receiptName,
+      language: form.language,
+      tone: form.tone
+    };
+
     axios
-      .post(`${apiUrl}/${apiVersion}/gemini/generate`, form, {
+      .post(`${apiUrl}/${apiVersion}/gemini/generate`, payload, {
         withCredentials: true,
       })
       .then((res) => {
-        setResponseText(res.data.message || res.data);
+        // --- FIX: Ensure we handle the response correctly ---
+        // Since the offline response is: { message: "..." }
+        setResponseText(res.data.message || "Failed to get message from server.");
       })
       .catch((err) => {
-        console.log("❌ Error:", err.response?.data || err.message);
+        // This will print the error status if the request fails
+        console.error("❌ API Call Failed:", err.response?.status, err.message);
         setResponseText("Sorry, something went wrong.");
       })
       .finally(() => {
@@ -62,107 +70,12 @@ function HomeComponent() {
       });
   };
 
-  const generateCardBlob = () => {
-    return new Promise((resolve) => {
-      const textContent = document.getElementById("response-text-content");
-      if (!textContent) return resolve(null);
-
-      const cardToDownload = document.createElement("div");
-      cardToDownload.style.display = "grid";
-      cardToDownload.style.gridTemplateColumns = "50px 1fr 50px";
-      cardToDownload.style.gridTemplateRows = "50px 1fr 50px";
-      cardToDownload.style.background =
-        "linear-gradient(135deg, #ffdf7e, #ff9a3c)";
-      cardToDownload.style.color = "#000000";
-      cardToDownload.style.width = "650px";
-      cardToDownload.style.borderRadius = "16px";
-      cardToDownload.style.position = "relative";
-      cardToDownload.style.overflow = "hidden";
-      cardToDownload.style.padding = "20px";
-      cardToDownload.style.boxSizing = "border-box";
-
-      const textElement = document.createElement("div");
-      textElement.style.fontFamily = "Poppins, sans-serif";
-      textElement.style.fontSize = "18px";
-      textElement.style.lineHeight = "1.7";
-      textElement.style.whiteSpace = "pre-line";
-      textElement.innerHTML = textContent.innerHTML;
-      textElement.style.gridColumn = "1 / 4";
-      textElement.style.gridRow = "2 / 3";
-      textElement.style.padding = "0 20px";
-      cardToDownload.appendChild(textElement);
-
-      const createDiya = () => {
-        const diya = document.createElement("div");
-        diya.style.width = "40px";
-        diya.style.height = "40px";
-        diya.style.backgroundImage = `url("${diyaDataURL}")`;
-        diya.style.backgroundSize = "contain";
-        diya.style.backgroundRepeat = "no-repeat";
-        diya.style.backgroundPosition = "center";
-        return diya;
-      };
-
-      const topLeft = createDiya();
-      topLeft.style.gridColumn = "1 / 2";
-      topLeft.style.gridRow = "1 / 2";
-      cardToDownload.appendChild(topLeft);
-
-      const topRight = createDiya();
-      topRight.style.gridColumn = "3 / 4";
-      topRight.style.gridRow = "1 / 2";
-      topRight.style.alignSelf = "flex-start";
-      topRight.style.justifySelf = "flex-end";
-      cardToDownload.appendChild(topRight);
-
-      const bottomLeft = createDiya();
-      bottomLeft.style.gridColumn = "1 / 2";
-      bottomLeft.style.gridRow = "3 / 4";
-      bottomLeft.style.alignSelf = "flex-end";
-      bottomLeft.style.justifySelf = "flex-start";
-      cardToDownload.appendChild(bottomLeft);
-
-      const bottomRight = createDiya();
-      bottomRight.style.gridColumn = "3 / 4";
-      bottomRight.style.gridRow = "3 / 4";
-      bottomRight.style.alignSelf = "flex-end";
-      bottomRight.style.justifySelf = "flex-end";
-      cardToDownload.appendChild(bottomRight);
-
-      cardToDownload.style.position = "absolute";
-      cardToDownload.style.left = "-9999px";
-      document.body.appendChild(cardToDownload);
-
-      setTimeout(() => {
-        html2canvas(cardToDownload, {
-          useCORS: true,
-          backgroundColor: "#ffffff",
-        }).then((canvas) => {
-          document.body.removeChild(cardToDownload);
-          canvas.toBlob((blob) => {
-            resolve(blob);
-          }, "image/png");
-        });
-      }, 100);
-    });
-  };
-
   const handleShare = async () => {
-    setIsCreatingImage(true);
-    const blob = await generateCardBlob();
-    if (!blob) {
-      setIsCreatingImage(false);
-      return;
-    }
-
-    const file = new File([blob], "diwali-greeting.png", { type: "image/png" });
-
-    if (navigator.share && navigator.canShare({ files: [file] })) {
+    if (navigator.share) {
       try {
         await navigator.share({
-          files: [file],
           title: "Diwali Greeting",
-          text: "Here's the Diwali greeting I made for you!",
+          text: responseText,
         });
       } catch (error) {
         console.error("Share failed:", error);
@@ -170,33 +83,87 @@ function HomeComponent() {
     } else {
       try {
         await navigator.clipboard.writeText(responseText);
-        alert(
-          "Greeting copied to clipboard! (Image sharing not supported on this browser)"
-        );
+        alert("Greeting copied to clipboard!");
       } catch (error) {
         console.error("Copy failed:", error);
       }
     }
-    setIsCreatingImage(false);
   };
 
-  const handleDownload = async () => {
-    setIsCreatingImage(true);
-    const blob = await generateCardBlob();
-    if (!blob) {
-      setIsCreatingImage(false);
-      return;
-    }
+  const handleDownload = () => {
+    const textContent = document.getElementById("response-text-content");
+    if (!textContent) return;
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "diwali-greeting-card.png";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    setIsCreatingImage(false);
+    const cardToDownload = document.createElement("div");
+    cardToDownload.style.background = "linear-gradient(135deg, #ffdf7e, #ff9a3c)";
+    cardToDownload.style.color = "#000000";
+    cardToDownload.style.width = "650px";
+    cardToDownload.style.borderRadius = "16px";
+    cardToDownload.style.position = "relative";
+    cardToDownload.style.overflow = "hidden";
+    cardToDownload.style.padding = "20px";
+    cardToDownload.style.boxSizing = "border-box";
+    cardToDownload.style.display = "flex";
+    cardToDownload.style.flexDirection = "column";
+    cardToDownload.style.justifyContent = "space-between";
+
+    const textElement = document.createElement("div");
+    textElement.style.fontFamily = "Poppins, sans-serif";
+    textElement.style.fontSize = "18px";
+    textElement.style.lineHeight = "1.7";
+    textElement.style.whiteSpace = "pre-line";
+    textElement.innerHTML = textContent.innerHTML;
+    textElement.style.padding = "60px 40px"; // Increased padding around text
+    cardToDownload.appendChild(textElement);
+    
+    // Helper to create a single Diya
+    const createDiya = () => {
+      const diya = document.createElement("div");
+      diya.style.width = "40px";
+      diya.style.height = "40px";
+      diya.style.backgroundImage = `url("${diyaDataURL}")`;
+      diya.style.backgroundSize = "contain";
+      diya.style.backgroundRepeat = "no-repeat";
+      diya.style.backgroundPosition = "center";
+      return diya;
+    };
+
+    // Add four diyas to the corners
+    const topLeft = createDiya();
+    topLeft.style.position = "absolute"; topLeft.style.top = "15px"; topLeft.style.left = "15px";
+    cardToDownload.appendChild(topLeft);
+
+    const topRight = createDiya();
+    topRight.style.position = "absolute"; topRight.style.top = "15px"; topRight.style.right = "15px";
+    cardToDownload.appendChild(topRight);
+
+    const bottomLeft = createDiya();
+    bottomLeft.style.position = "absolute"; bottomLeft.style.bottom = "15px"; bottomLeft.style.left = "15px";
+    cardToDownload.appendChild(bottomLeft);
+
+    const bottomRight = createDiya();
+    bottomRight.style.position = "absolute"; bottomRight.style.bottom = "15px"; bottomRight.style.right = "15px";
+    cardToDownload.appendChild(bottomRight);
+
+    cardToDownload.style.position = "absolute";
+    cardToDownload.style.left = "-9999px";
+    document.body.appendChild(cardToDownload);
+
+    setTimeout(() => {
+      html2canvas(cardToDownload, {
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      }).then((canvas) => {
+        const image = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
+        a.href = image;
+        a.download = "diwali-greeting-card.png";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        document.body.removeChild(cardToDownload);
+      });
+    }, 100);
   };
 
   return (
@@ -268,6 +235,7 @@ function HomeComponent() {
       </div>
 
       <div
+        ref={cardRef}
         className="form-card response-card"
         style={{
           textAlign: "left",
@@ -315,17 +283,15 @@ function HomeComponent() {
               variant="outlined"
               startIcon={<ShareIcon />}
               onClick={handleShare}
-              disabled={isCreatingImage}
             >
-              {isCreatingImage ? "Wait..." : "Share"}
+              Share
             </Button>
             <Button
               variant="contained"
               startIcon={<DownloadIcon />}
               onClick={handleDownload}
-              disabled={isCreatingImage}
             >
-              {isCreatingImage ? "Wait..." : "Download Card"}
+              Download Card
             </Button>
           </Stack>
         )}
