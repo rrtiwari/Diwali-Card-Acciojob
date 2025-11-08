@@ -29,23 +29,37 @@ userRouter.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      res.json({ Message: "Email and password is required", status: 401 });
-      return;
+      // Added return here too, just in case
+      return res
+        .status(400)
+        .json({ Message: "Email and password is required" });
     }
     const user = await UserModel.findOne({ email });
-    if (!(user && (await user.comparePassword(password)))) {
-      res.status(401).json({ Message: "Email or password do not match" });
+
+    if (!user || !(await user.comparePassword(password))) {
+      return res
+        .status(401)
+        .json({ Message: "Email or password do not match" });
     }
+
     const token = await user.generateJWTToken();
-    res.cookie("token", token);
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
     res.status(200).json({
       Message: "User logged in successfully",
       success: true,
     });
   } catch (error) {
+    console.error("Login Error:", error);
     res
       .status(500)
-      .json({ Message: "Something went Wrong", Status: `error ${error}` });
+      .json({
+        Message: "Something went Wrong",
+        Status: `error ${error.message}`,
+      });
   }
 });
 
