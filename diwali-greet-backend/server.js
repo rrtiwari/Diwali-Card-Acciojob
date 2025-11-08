@@ -9,8 +9,31 @@ const { userRouter } = require("./routers/user.router");
 const { geminiRouter } = require("./routers/gemini.router");
 var cookieParser = require("cookie-parser");
 
+const allowedOrigins = [
+  "https://diwali-card-acciojob.vercel.app",
+  "https://*-diwali-card-acciojob.vercel.app",
+];
+
 const corsOptions = {
-  origin: "https://diwali-card-acciojob-rnrend7b6-rahul-tiwaris-projects-7c661166.vercel.app", 
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+
+    const isAllowed = allowedOrigins.some((pattern) => {
+      if (pattern.includes("*")) {
+        const regex = new RegExp(
+          "^" + pattern.replace(/\./g, "\\.").replace(/\*/g, "([^\\.]+)") + "$"
+        );
+        return regex.test(origin);
+      }
+      return origin === pattern;
+    });
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
 };
 
