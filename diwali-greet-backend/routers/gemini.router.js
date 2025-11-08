@@ -13,7 +13,7 @@ geminiRouter.post("/generate", isLoggedIn, async (req, res) => {
 
   let gemini_key = process.env.GEMINI_API_KEY;
   if (!gemini_key) {
-    return res.json({ Message: "Kindly put your gemini key" });
+    return res.json({ message: "Kindly put your gemini key" });
   }
   try {
     let prompt = buildPrompt(receiptName, language, tone);
@@ -22,8 +22,9 @@ geminiRouter.post("/generate", isLoggedIn, async (req, res) => {
     prompt +=
       "\n2. DO NOT include a 'Subject:' line. Start the message directly with the greeting (e.g., 'Dear Mohan,').";
 
+    // --- FINAL FIX: Using the highly compatible 'gemini-1.0-pro' model on 'v1' endpoint ---
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.0-pro:generateContent`,
       {
         method: "POST",
         headers: {
@@ -33,16 +34,18 @@ geminiRouter.post("/generate", isLoggedIn, async (req, res) => {
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
       }
     );
+    // --- END FINAL FIX ---
 
     if (response.ok) {
       const data = await response.json();
       const greeting =
         data?.candidates?.[0]?.content?.parts?.[0]?.text || "No responses";
-
+      
       res.json({ message: greeting });
     } else {
+      // Log the full response status if it's not OK
       const errorData = await response.json();
-      console.error("Google API Error:", errorData);
+      console.error("Google API Error:", response.status, errorData);
       res.status(response.status).json({ message: "Error from Google API" });
     }
   } catch (error) {
